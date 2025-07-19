@@ -1,5 +1,6 @@
 import argparse
 import os
+import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from s3_access import S3Access
@@ -40,6 +41,31 @@ def test_sql_connection():
         return False
 
 
+def check_numpys(dataframe, sample_size=15):
+    """
+    Take a random sample of <sample_size> from the dataframe and verify that \
+        no two numpy arrays are identical.
+    """
+    print(f"\nVerifying {sample_size} random numpy \
+          arrays for uniqueness...")
+    sample_df = dataframe.sample(n=min(sample_size,
+                                 len(dataframe)),
+                                 random_state=42)
+    arrays = sample_df['image'].tolist()
+    duplicates_found = False
+    for i in range(len(arrays)):
+        for j in range(i+1, len(arrays)):
+            if arrays[i] is not None and arrays[j] is not None:
+                if np.array_equal(arrays[i], arrays[j]):
+                    print(f"Duplicate found between indices \
+                          {sample_df.index[i]} and {sample_df.index[j]}")
+                    duplicates_found = True
+    if not duplicates_found:
+        print("\U0001F60A All sampled numpy arrays are unique!")
+    else:
+        print("\U0001F622 Duplicate numpy arrays found in the sample!")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Training script for ML console.")
@@ -53,6 +79,16 @@ def main():
         "--sql-only",
         action="store_true",
         help="Only tests connection to SQL."
+    )
+    frames_parser.add_argument(
+        "--verify-numpys",
+        type=int,
+        nargs="?",
+        const=15,
+        default=None,
+        metavar="N",
+        help="Verify that a random sample of N \
+            numpy arrays are unique (default: 15)."
     )
 
     # 'train' subcommand
@@ -86,6 +122,8 @@ def main():
             complete.info()
             print("\nDataFrame head:")
             print(complete.head())
+            if args.verify_numpys is not None:
+                check_numpys(complete, sample_size=args.verify_numpys)
     elif args.command == "train":
         # Placeholder for training logic based on args.model
         pass
