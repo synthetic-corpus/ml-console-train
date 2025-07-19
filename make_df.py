@@ -43,9 +43,9 @@ def load_image_dataframe(df: pd.DataFrame,
 
             if isinstance(obj_data, bytes):
                 # If get_object returns bytes, use BytesIO
-                numpy_array = np.load(io.BytesIO(obj_data))
+                numpy_array = np.load(io.BytesIO(obj_data), allow_pickle=True)
             else:
-                numpy_array = np.load(obj_data)
+                numpy_array = np.load(obj_data, allow_pickle=True)
 
             # Add the numpy array to the DataFrame
             result_df.at[idx, 'image'] = numpy_array
