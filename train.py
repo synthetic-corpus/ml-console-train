@@ -1,12 +1,47 @@
 import argparse
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from image_table_base import Image_table_base, Base
+
+DB_HOST = os.environ.get('DB_HOST')
+DB_NAME = os.environ.get('DB_NAME', 'imags')
+DB_USER = os.environ.get('DB_USER', 'imagetraineruser')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+
+# Set up the SQLAlchemy engine and sessionmaker globally
+DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+engine = create_engine(DB_URL)
+Session = sessionmaker(bind=engine)
+
+
+def test_sql_connection():
+    """
+    Test the SQL connection by performing 'SELECT * FROM images LIMIT 1'.
+    Returns True and prints a happy message if successful,
+    otherwise returns False and prints the error.
+    """
+    try:
+        session = Session()
+        session.query(Image_table_base).limit(1).all()
+        print("\U0001F60A Successfully connected to the \
+              database and queried the images table!")
+        session.close()
+        return True
+    except Exception as e:
+        print(f"\U0001F622 Failed to connect or query the database: {e}")
+        return False
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Training script for ML console.")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    parser = argparse.ArgumentParser(
+        description="Training script for ML console.")
+    subparsers = parser.add_subparsers(
+        dest="command", required=True)
 
     # 'frames' subcommand
-    frames_parser = subparsers.add_parser("frames", help="Work with frames data")
+    frames_parser = subparsers.add_parser("frames",
+                                          help="Work with frames data")
     frames_parser.add_argument(
         "--sql-only",
         action="store_true",
@@ -14,7 +49,8 @@ def main():
     )
 
     # 'train' subcommand
-    train_parser = subparsers.add_parser("train", help="Train a machine learning model")
+    train_parser = subparsers.add_parser("train", help="Train \
+                                         a machine learning model")
     train_parser.add_argument(
         "--model",
         type=str,
@@ -33,8 +69,7 @@ def main():
 
     if args.command == "frames":
         if args.sql_only:
-            # Placeholder for --sql-only logic
-            pass
+            test_sql_connection()
         else:
             # Placeholder for frames logic
             pass
@@ -42,5 +77,6 @@ def main():
         # Placeholder for training logic based on args.model
         pass
 
+
 if __name__ == "__main__":
-    main() 
+    main()
