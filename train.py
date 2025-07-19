@@ -1,8 +1,12 @@
 import argparse
+import sys
 import os
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+# custom imports
+from SciModels import SciModels
 from s3_access import S3Access
 from image_table_base import Image_table_base
 from get_sql import get_hash_and_gender_dataframe
@@ -111,6 +115,30 @@ def main():
             (Random Forest Classifier), 'regression' (Logistic Regression), \
                 or 'vector' (Support Vector Machine)."
     )
+    train_parser.add_argument(
+        "--split",
+        type=float,
+        default=0.2,
+        choices=[round(x * 0.01, 2) for x in range(10, 91)],
+        metavar="[0.1-0.9]",
+        help="Test split size (between 0.1 and 0.9, default: 0.2)"
+    )
+    train_parser.add_argument(
+        "--file",
+        type=str,
+        required=True,
+        metavar="FILEPATH",
+        help="Path to the DataFrame pickle file \
+            to use for training. (Required)"
+    )
+    train_parser.add_argument(
+        "--save-model",
+        type=str,
+        default=None,
+        metavar="MODELFILE",
+        help="Optional: File name to save the \
+            trained model (must end with .pkl or .joblib)."
+    )
     # The --model argument determines which ML model to use:
     #   'forest'    -> Random Forest Classifier
     #   'regression'-> Logistic Regression
@@ -135,11 +163,20 @@ def main():
             if args.save:
                 save_path = f"/mnt/ebs_volume/{args.save}"
                 complete.to_pickle(save_path)
-                print(f"\U0001F4BE DataFrame saved\
-                      to {save_path} as a pickle file.")
+                print(f"\U0001F4BE DataFrame saved\n     \
+                       to {save_path} as a pickle file.")
     elif args.command == "train":
-        # Placeholder for training logic based on args.model
-        pass
+        # Enforce correct model file extension if --save-model is provided
+        if args.save_model is not None:
+            if not (args.save_model.endswith('.pkl') or args.save_model.endswith('.joblib')):  # noqa E501
+                print("\n\033[91mERROR: The model file name must end with \
+                      .pkl or .joblib!\033[0m")
+                print("Please provide a file name like 'model.pkl' \
+                      or 'model.joblib' for --save-model.")
+                sys.exit(1)
+        # Create SciModels instance and train the model
+        sci = SciModels(args.file)
+        sci.train_model(args.split, args.model, save_name=args.save_model)
 
 
 if __name__ == "__main__":
