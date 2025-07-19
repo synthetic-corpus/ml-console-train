@@ -2,18 +2,24 @@ import argparse
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from image_table_base import Image_table_base, Base
+from s3_access import S3Access
+from image_table_base import Image_table_base
+from get_sql import get_hash_and_gender_dataframe
+from make_df import load_image_dataframe
 
 DB_HOST = os.environ.get('DB_HOST')
 DB_NAME = os.environ.get('DB_NAME', 'imags')
 DB_USER = os.environ.get('DB_USER', 'imagetraineruser')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
+S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
 # Set up the SQLAlchemy engine and sessionmaker globally
 DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 
+s3access = S3Access(S3_BUCKET_NAME)
+# the connection to s3
 
 def test_sql_connection():
     """
@@ -71,8 +77,10 @@ def main():
         if args.sql_only:
             test_sql_connection()
         else:
-            # Placeholder for frames logic
-            pass
+            data_frame = get_hash_and_gender_dataframe(Session())
+            if data_frame is not None:
+                print("\U0001F60A Successfully retrieved the data frame!")
+            complete = load_image_dataframe(data_frame, s3access)
     elif args.command == "train":
         # Placeholder for training logic based on args.model
         pass

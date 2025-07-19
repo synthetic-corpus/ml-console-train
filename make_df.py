@@ -36,7 +36,7 @@ def load_image_dataframe(df: pd.DataFrame,
 
         try:
             # Construct the S3 key for the numpy file
-            s3_key = f"numpy/{hash_name}.npy"
+            s3_key = f"numpys/{hash_name}.npy"
 
             # Retrieve the object from S3
             obj_data = s3_access.get_object(s3_key)
