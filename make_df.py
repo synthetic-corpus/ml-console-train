@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from S3Access import S3Access
+from s3_access import S3Access
 import io
 from typing import Optional
 
