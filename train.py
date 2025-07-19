@@ -14,12 +14,13 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
 # Set up the SQLAlchemy engine and sessionmaker globally
-DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"  # noqa E231
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 
+# connection to s3
 s3access = S3Access(S3_BUCKET_NAME)
-# the connection to s3
+
 
 def test_sql_connection():
     """
@@ -81,6 +82,10 @@ def main():
             if data_frame is not None:
                 print("\U0001F60A Successfully retrieved the data frame!")
             complete = load_image_dataframe(data_frame, s3access)
+            print("\nDataFrame info:")
+            complete.info()
+            print("\nDataFrame head:")
+            print(complete.head())
     elif args.command == "train":
         # Placeholder for training logic based on args.model
         pass
