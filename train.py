@@ -90,6 +90,14 @@ def main():
         help="Verify that a random sample of N \
             numpy arrays are unique (default: 15)."
     )
+    frames_parser.add_argument(
+        "--save",
+        type=str,
+        default=None,
+        metavar="FILENAME",
+        help="Save the resulting dataframe to\
+        /mnt/ebs_volume/<filename> as a pickle file."
+    )
 
     # 'train' subcommand
     train_parser = subparsers.add_parser("train", help="Train \
@@ -124,6 +132,11 @@ def main():
             print(complete.head())
             if args.verify_numpys is not None:
                 check_numpys(complete, sample_size=args.verify_numpys)
+            if args.save:
+                save_path = f"/mnt/ebs_volume/{args.save}"
+                complete.to_pickle(save_path)
+                print(f"\U0001F4BE DataFrame saved\
+                      to {save_path} as a pickle file.")
     elif args.command == "train":
         # Placeholder for training logic based on args.model
         pass
