@@ -11,7 +11,7 @@ def load_image_dataframe(df: pd.DataFrame,
     Load numpy arrays from S3 and add them as 'image' column to the DataFrame.
 
     Args:
-        df: DataFrame with columns 'hash_name' and 'is_masc'
+        df: DataFrame with columns 'hash' and 'is_masc'
         s3_access: Instance of S3Access class
 
     Returns:
@@ -32,11 +32,11 @@ def load_image_dataframe(df: pd.DataFrame,
 
     # Iterate through each row and load the corresponding numpy array
     for idx, row in result_df.iterrows():
-        hash_name = row['hash_name']
+        hash = row['hash']
 
         try:
             # Construct the S3 key for the numpy file
-            s3_key = f"numpys/{hash_name}.npy"
+            s3_key = f"numpys/{hash}.npy"
 
             # Retrieve the object from S3
             obj_data = s3_access.get_object(s3_key)
@@ -58,9 +58,9 @@ def load_image_dataframe(df: pd.DataFrame,
                         items...")
 
         except Exception as e:
-            print(f"Failed to load {hash_name}.npy: {str(e)}")
+            print(f"Failed to load {hash}.npy: {str(e)}")
             failed_loads += 1
-            failed_hashes.append(hash_name)
+            failed_hashes.append(hash)
             # Keep None in the image column for failed loads
 
     # Print summary statistics
@@ -80,7 +80,7 @@ def validate_dataframe(df: pd.DataFrame) -> bool:
     """
     Validate that the DataFrame has the expected structure.
     """
-    required_columns = ['hash_name', 'is_masc']
+    required_columns = ['hash', 'is_masc']
 
     if not all(col in df.columns for col in required_columns):
         print(f"Error: DataFrame must contain columns: {required_columns}")
@@ -102,7 +102,7 @@ def main():
     s3_access = S3Access()  # Add any required initialization parameters
 
     sample_data = {
-        'hash_name': ['abc123', 'def456', 'ghi789'],
+        'hash': ['abc123', 'def456', 'ghi789'],
         'is_masc': [True, False, True]
     }
     df = pd.DataFrame(sample_data)
