@@ -13,7 +13,7 @@ from get_sql import get_hash_and_gender_dataframe
 from make_df import load_image_dataframe
 
 DB_HOST = os.environ.get('DB_HOST')
-DB_NAME = os.environ.get('DB_NAME', 'imags')
+DB_NAME = os.environ.get('DB_NAME', 'imagetrainerdb')
 DB_USER = os.environ.get('DB_USER', 'imagetraineruser')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
