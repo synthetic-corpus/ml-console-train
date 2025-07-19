@@ -41,11 +41,24 @@ def load_image_dataframe(df: pd.DataFrame,
             # Retrieve the object from S3
             obj_data = s3_access.get_object(s3_key)
 
-            if isinstance(obj_data, bytes):
-                # If get_object returns bytes, use BytesIO
-                numpy_array = np.load(io.BytesIO(obj_data), allow_pickle=True)
-            else:
-                numpy_array = np.load(obj_data, allow_pickle=True)
+            try:
+                # Try loading as a .npy file first
+                if isinstance(obj_data, bytes):
+                    numpy_array = np.load(io.BytesIO(obj_data), allow_pickle=True)
+                else:
+                    numpy_array = np.load(obj_data, allow_pickle=True)
+            except Exception as e:
+                print(f"np.load failed for {hash}: {e}")
+                try:
+                    # Fallback: interpret as raw 1D float32 array
+                    if isinstance(obj_data, bytes):
+                        numpy_array = np.frombuffer(obj_data, dtype=np.float32)
+                    else:
+                        numpy_array = np.frombuffer(obj_data.read(), dtype=np.float32)
+                    print(f"Loaded {hash} as raw float32 array.")
+                except Exception as e2:
+                    print(f"Failed to load {hash} as raw array: {e2}")
+                    numpy_array = None
 
             # Add the numpy array to the DataFrame
             result_df.at[idx, 'image'] = numpy_array
