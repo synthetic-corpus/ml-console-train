@@ -1,6 +1,7 @@
 import boto3
-import random
-from botocore.exceptions import ClientError
+from io import BytesIO
+import numpy as np
+from botocore.exceptions import ClientError, IncompleteReadError
 
 
 class S3Access:
@@ -35,6 +36,22 @@ class S3Access:
             file_content = response['Body'].read()
             print(f"Successfully retrieved object {key}")
             return file_content
+
+        except IncompleteReadError:
+            print(f"IncompleteReadError encountered. {key}")
+
+            try:
+                response = self.s3_client.get_object(
+                    Bucket=self.bucket_name,
+                    Key=key
+                )
+                file_content = response['Body'].read()
+                np_array = np.load(BytesIO(file_content))
+                print(f"Successfully loaded numpy array from {key}.")
+                return np_array
+            except Exception as e:
+                print(f"Error loading numpy array from {key}: {e}")
+                return None
 
         except ClientError as e:
             print(f"Error retrieving object {key}: {e}")
